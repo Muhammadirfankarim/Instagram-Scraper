@@ -9,6 +9,8 @@ Script ini memungkinkan Anda untuk melakukan scraping post Instagram dari akun p
 - Menyimpan data dalam format CSV atau Excel
 - Opsi untuk membatasi jumlah post yang di-scrape
 - Menyimpan informasi penting seperti caption, jumlah likes, jumlah komentar, hashtag, dll.
+- **Fitur login** untuk menghindari batasan rate limiting
+- **Pengaturan delay** antara permintaan untuk menghindari pemblokiran
 
 ## Persyaratan
 
@@ -32,10 +34,13 @@ pip install -r instagram_scraper_requirements.txt
 
 ```bash
 # Format dasar
-python instagram_scraper.py USERNAME [--limit LIMIT] [--format {csv,excel}]
+python instagram_scraper.py USERNAME [--limit LIMIT] [--format {csv,excel}] [--login LOGIN_USERNAME] [--delay DELAY_SECONDS]
 
 # Contoh: Scrape 10 post terakhir dari akun natgeo dan simpan dalam format CSV
 python instagram_scraper.py natgeo --limit 10 --format csv
+
+# Contoh: Scrape dengan login untuk menghindari batasan rate limiting
+python instagram_scraper.py natgeo --login your_instagram_username --delay 3
 
 # Contoh: Scrape semua post dari akun natgeo dan simpan dalam format Excel
 python instagram_scraper.py natgeo --format excel
@@ -49,9 +54,30 @@ from instagram_scraper import scrape_instagram_posts
 # Scrape 20 post terakhir dari akun natgeo dan simpan dalam format CSV (default)
 output_path = scrape_instagram_posts(username="natgeo", limit=20)
 
+# Scrape dengan login untuk menghindari batasan rate limiting
+output_path = scrape_instagram_posts(username="natgeo", limit=20, login_user="your_instagram_username", delay=3)
+
 # Scrape 50 post terakhir dari akun natgeo dan simpan dalam format Excel
 output_path = scrape_instagram_posts(username="natgeo", limit=50, output_format="excel")
 ```
+
+## Mengatasi Error Rate Limiting
+
+Jika Anda mendapatkan error "401 Unauthorized" atau pesan "Please wait a few minutes before you try again", ini berarti Instagram telah menerapkan rate limiting pada IP Anda. Berikut beberapa cara untuk mengatasinya:
+
+1. **Gunakan fitur login**: Login dengan akun Instagram Anda untuk mendapatkan batas rate yang lebih tinggi
+   ```bash
+   python instagram_scraper.py USERNAME --login YOUR_INSTAGRAM_USERNAME
+   ```
+
+2. **Tambahkan delay lebih lama**: Tingkatkan waktu tunggu antara permintaan
+   ```bash
+   python instagram_scraper.py USERNAME --delay 5
+   ```
+
+3. **Tunggu beberapa menit**: Jika masih mendapatkan error, tunggu 10-15 menit sebelum mencoba lagi
+
+4. **Gunakan VPN**: Mengubah IP Anda dapat membantu mengatasi pembatasan
 
 ## Catatan Penting
 
@@ -59,7 +85,7 @@ output_path = scrape_instagram_posts(username="natgeo", limit=50, output_format=
 
 2. **Akun Publik**: Script ini hanya berfungsi untuk akun Instagram publik. Akun privat tidak dapat di-scrape tanpa login.
 
-3. **Login (Opsional)**: Untuk menghindari batasan rate limit, Anda dapat memodifikasi script untuk login dengan akun Instagram Anda. Namun, ini tidak disertakan dalam versi dasar untuk menghindari masalah keamanan.
+3. **Login (Opsional)**: Untuk menghindari batasan rate limit, Anda dapat login dengan akun Instagram Anda menggunakan parameter `--login`.
 
 4. **Penggunaan yang Bertanggung Jawab**: Gunakan script ini dengan bertanggung jawab dan hormati kebijakan penggunaan Instagram.
 

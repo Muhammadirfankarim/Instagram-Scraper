@@ -4,8 +4,10 @@ import pandas as pd
 import os
 import argparse
 from tqdm import tqdm
+import time
+import getpass
 
-def scrape_instagram_posts(username, limit=None, output_format='csv'):
+def scrape_instagram_posts(username, limit=None, output_format='csv', login_user=None, delay=2):
     """
     Scrape Instagram posts from a specific user and save the results with posting time and scraping time.
     
@@ -13,12 +15,25 @@ def scrape_instagram_posts(username, limit=None, output_format='csv'):
         username (str): Instagram username to scrape
         limit (int, optional): Maximum number of posts to scrape. None means all posts.
         output_format (str, optional): Output format ('csv' or 'excel'). Defaults to 'csv'.
+        login_user (str, optional): Instagram username to login with. If None, no login is performed.
+        delay (int, optional): Delay in seconds between requests to avoid rate limiting. Defaults to 2.
     
     Returns:
         str: Path to the saved file
     """
     # Inisialisasi instaloader
     L = instaloader.Instaloader()
+    
+    # Login ke Instagram jika username login diberikan
+    if login_user:
+        try:
+            password = getpass.getpass(f"Masukkan password untuk {login_user}: ")
+            print(f"Mencoba login sebagai {login_user}...")
+            L.login(login_user, password)
+            print("Login berhasil!")
+        except Exception as e:
+            print(f"Login gagal: {str(e)}")
+            print("Melanjutkan tanpa login...")
     
     # Waktu scraping
     scrape_time = datetime.datetime.now()
@@ -56,6 +71,9 @@ def scrape_instagram_posts(username, limit=None, output_format='csv'):
             
             if limit and len(posts_data) >= limit:
                 break
+                
+            # Tambahkan delay untuk menghindari rate limiting
+            time.sleep(delay)
         
         # Buat DataFrame
         df = pd.DataFrame(posts_data)
@@ -78,8 +96,15 @@ def scrape_instagram_posts(username, limit=None, output_format='csv'):
         
     except instaloader.exceptions.ProfileNotExistsException:
         print(f"Error: Profil '{username}' tidak ditemukan.")
+    except instaloader.exceptions.ConnectionException as e:
+        print(f"Error koneksi: {str(e)}")
+        print("Saran: Tunggu beberapa menit dan coba lagi, atau gunakan VPN untuk mengubah IP Anda.")
+    except instaloader.exceptions.LoginRequiredException:
+        print("Error: Login diperlukan untuk mengakses data ini.")
+        print("Saran: Jalankan script dengan parameter login_user untuk login ke Instagram.")
     except Exception as e:
         print(f"Error: {str(e)}")
+        print("Saran: Jika error berkaitan dengan rate limiting, tunggu beberapa menit dan coba lagi.")
     
     return None
 
@@ -88,7 +113,9 @@ if __name__ == "__main__":
     parser.add_argument('username', type=str, help='Instagram username to scrape')
     parser.add_argument('--limit', type=int, default=None, help='Maximum number of posts to scrape')
     parser.add_argument('--format', type=str, choices=['csv', 'excel'], default='csv', help='Output format (csv or excel)')
+    parser.add_argument('--login', type=str, default=None, help='Instagram username to login with')
+    parser.add_argument('--delay', type=int, default=2, help='Delay in seconds between requests to avoid rate limiting')
     
     args = parser.parse_args()
     
-    scrape_instagram_posts(args.username, args.limit, args.format) 
+    scrape_instagram_posts(args.username, args.limit, args.format, args.login, args.delay) 
